@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ### Basic
 
-```
+```ruby
 require 'immutable_list'
 
 p ImmutableList.new # => ()
@@ -47,7 +47,7 @@ p l3[100] #=> nil
 
 A Example of QuickSort.
 
-```
+```ruby
 require 'immutable_list'
 
 def divide(a, l, lt, ge)
