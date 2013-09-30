@@ -4,47 +4,47 @@
 #define true 1
 #define false 0
 
-VALUE cLinkedList;
+VALUE cImmutableList;
 
-struct linkedlist {
+struct immutable_list {
   VALUE value;
   VALUE next;
 };
 
 static void
-linkedlist_mark(struct linkedlist *ptr)
+immutable_list_mark(struct immutable_list *ptr)
 {
   rb_gc_mark(ptr->value);
   rb_gc_mark(ptr->next);
 }
 
 static VALUE
-linkedlist_alloc(VALUE klass)
+immutable_list_alloc(VALUE klass)
 {
-  struct linkedlist *ptr = ALLOC(struct linkedlist);
-  return Data_Wrap_Struct(klass, linkedlist_mark, -1, ptr);
+  struct immutable_list *ptr = ALLOC(struct immutable_list);
+  return Data_Wrap_Struct(klass, immutable_list_mark, -1, ptr);
 }
 
 static VALUE
-linkedlist_initialize(VALUE self)
+immutable_list_initialize(VALUE self)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
 
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
   ptr->value = Qnil;
   ptr->next = Qnil;
   return self;
 }
 
 static VALUE
-linkedlist_cons(VALUE self, VALUE a)
+immutable_list_cons(VALUE self, VALUE a)
 {
-  struct linkedlist *ptr, *new_ptr;
+  struct immutable_list *ptr, *new_ptr;
   VALUE result;
 
-  Data_Get_Struct(self, struct linkedlist, ptr);
-  result = linkedlist_alloc(cLinkedList);
-  Data_Get_Struct(result, struct linkedlist, new_ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
+  result = immutable_list_alloc(cImmutableList);
+  Data_Get_Struct(result, struct immutable_list, new_ptr);
 
   new_ptr->value = a;
   new_ptr->next = self;
@@ -52,75 +52,75 @@ linkedlist_cons(VALUE self, VALUE a)
 }
 
 static VALUE
-linkedlist_s_create_core(VALUE result, int argc, VALUE *argv, int i)
+immutable_list_s_create_core(VALUE result, int argc, VALUE *argv, int i)
 {
   if (i < 0) {
     return result;
   } else {
-    return linkedlist_s_create_core( linkedlist_cons(result, argv[i]), argc, argv, i-1);
+    return immutable_list_s_create_core( immutable_list_cons(result, argv[i]), argc, argv, i-1);
   }
 }
 
 static VALUE
-linkedlist_s_create(int argc, VALUE *argv, VALUE klass)
+immutable_list_s_create(int argc, VALUE *argv, VALUE klass)
 {
-  VALUE result = linkedlist_initialize(linkedlist_alloc(klass));
-  return linkedlist_s_create_core(result, argc, argv, argc - 1);
+  VALUE result = immutable_list_initialize(immutable_list_alloc(klass));
+  return immutable_list_s_create_core(result, argc, argv, argc - 1);
 }
 
 static VALUE
-linkedlist_head(VALUE self)
+immutable_list_head(VALUE self)
 {
-  struct linkedlist *ptr;
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  struct immutable_list *ptr;
+  Data_Get_Struct(self, struct immutable_list, ptr);
   return ptr->value;
 }
 
 static VALUE
-linkedlist_tail(VALUE self)
+immutable_list_tail(VALUE self)
 {
-  struct linkedlist *ptr;
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  struct immutable_list *ptr;
+  Data_Get_Struct(self, struct immutable_list, ptr);
   return ptr->next;
 }
 
 static VALUE
-linkedlist_is_empty(VALUE self)
+immutable_list_is_empty(VALUE self)
 {
-  struct linkedlist *ptr;
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  struct immutable_list *ptr;
+  Data_Get_Struct(self, struct immutable_list, ptr);
   return ptr->next == Qnil ? Qtrue : Qfalse;
 }
 
 static VALUE
-linkedlist_to_a(VALUE self)
+immutable_list_to_a(VALUE self)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
   VALUE ary;
   
   ary = rb_ary_new();
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
   while (ptr->next != Qnil) {
     rb_ary_push(ary, ptr->value);
-    Data_Get_Struct(ptr->next, struct linkedlist, ptr);
+    Data_Get_Struct(ptr->next, struct immutable_list, ptr);
   }
   return ary;
 }
 
 static VALUE
-linkedlist_inspect(VALUE self)
+immutable_list_inspect(VALUE self)
 {
   VALUE str, str2;
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
 
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
   str = rb_str_buf_new2("(");
 
   if (ptr->next != Qnil) {
     while (true) {
       str2 = rb_inspect(ptr->value);
       rb_str_buf_append(str, str2);
-      Data_Get_Struct(ptr->next, struct linkedlist, ptr);
+      Data_Get_Struct(ptr->next, struct immutable_list, ptr);
       if (ptr->next != Qnil) {
         rb_str_buf_cat_ascii(str, ", ");
       } else {
@@ -136,93 +136,93 @@ linkedlist_inspect(VALUE self)
 }
 
 static VALUE
-linkedlist_rev_append(VALUE l1, VALUE l2)
+immutable_list_rev_append(VALUE l1, VALUE l2)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
 
-  Data_Get_Struct(l1, struct linkedlist, ptr);
+  Data_Get_Struct(l1, struct immutable_list, ptr);
   if (ptr->next == Qnil) {
     return l2;
   } else {
-    return linkedlist_rev_append(ptr->next, linkedlist_cons(l2, ptr->value));
+    return immutable_list_rev_append(ptr->next, immutable_list_cons(l2, ptr->value));
   }
 }
 
 static VALUE
-linkedlist_rev(VALUE self)
+immutable_list_rev(VALUE self)
 {
-  return linkedlist_rev_append(self,
-      linkedlist_initialize(linkedlist_alloc(cLinkedList)));
+  return immutable_list_rev_append(self,
+      immutable_list_initialize(immutable_list_alloc(cImmutableList)));
 }
 
 static VALUE
-linkedlist_append(VALUE l1, VALUE l2)
+immutable_list_append(VALUE l1, VALUE l2)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
 
-  Data_Get_Struct(l1, struct linkedlist, ptr);
+  Data_Get_Struct(l1, struct immutable_list, ptr);
   if (ptr->next == Qnil) {
     return l2;
   } else {
-    return linkedlist_cons( linkedlist_append(ptr->next, l2), ptr->value);
+    return immutable_list_cons( immutable_list_append(ptr->next, l2), ptr->value);
   }
 }
 
 static int
-linkedlist_length_core(VALUE self)
+immutable_list_length_core(VALUE self)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
 
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
   if (ptr->next == Qnil) {
     return 0;
   } else {
-    return 1 + linkedlist_length_core(ptr->next);
+    return 1 + immutable_list_length_core(ptr->next);
   }
 }
 
 static VALUE
-linkedlist_length(VALUE self)
+immutable_list_length(VALUE self)
 {
-  return INT2FIX(linkedlist_length_core(self));
+  return INT2FIX(immutable_list_length_core(self));
 }
 
 static VALUE
-linkedlist_nth(VALUE self, VALUE index)
+immutable_list_nth(VALUE self, VALUE index)
 {
-  struct linkedlist *ptr;
+  struct immutable_list *ptr;
   int i, n;
   
   n = FIX2INT(index);
-  Data_Get_Struct(self, struct linkedlist, ptr);
+  Data_Get_Struct(self, struct immutable_list, ptr);
   for (i = 0; ptr->next != Qnil; ++i) {
     if (i == n) {
       return ptr->value;
     }
-    Data_Get_Struct(ptr->next, struct linkedlist, ptr);
+    Data_Get_Struct(ptr->next, struct immutable_list, ptr);
   }
   return Qnil;
 }
 
-void Init_linkedlist(void)
+void Init_immutable_list(void)
 {
-  cLinkedList = rb_define_class("ImmutableList", rb_cObject);
-  rb_define_alloc_func(cLinkedList, linkedlist_alloc);
-  rb_define_singleton_method(cLinkedList, "[]", linkedlist_s_create, -1);
+  cImmutableList = rb_define_class("ImmutableList", rb_cObject);
+  rb_define_alloc_func(cImmutableList, immutable_list_alloc);
+  rb_define_singleton_method(cImmutableList, "[]", immutable_list_s_create, -1);
 
-  rb_define_private_method(cLinkedList, "initialize", linkedlist_initialize, 0);
-  rb_define_method(cLinkedList, "cons", linkedlist_cons, 1);
-  rb_define_method(cLinkedList, "head", linkedlist_head, 0);
-  rb_define_method(cLinkedList, "tail", linkedlist_tail, 0);
-  rb_define_method(cLinkedList, "empty?", linkedlist_is_empty, 0);
-  rb_define_method(cLinkedList, "to_a", linkedlist_to_a, 0);
-  rb_define_method(cLinkedList, "inspect", linkedlist_inspect, 0);
-  rb_define_alias(cLinkedList,  "to_s", "inspect");
-  rb_define_method(cLinkedList, "rev_append", linkedlist_rev_append, 1);
-  rb_define_method(cLinkedList, "rev", linkedlist_rev, 0);
-  rb_define_method(cLinkedList, "append", linkedlist_append, 1);
-  rb_define_alias(cLinkedList,  "+", "append");
-  rb_define_method(cLinkedList, "length", linkedlist_length, 0);
-  rb_define_method(cLinkedList, "nth", linkedlist_nth, 1);
-  rb_define_alias(cLinkedList,  "[]", "nth");
+  rb_define_private_method(cImmutableList, "initialize", immutable_list_initialize, 0);
+  rb_define_method(cImmutableList, "cons", immutable_list_cons, 1);
+  rb_define_method(cImmutableList, "head", immutable_list_head, 0);
+  rb_define_method(cImmutableList, "tail", immutable_list_tail, 0);
+  rb_define_method(cImmutableList, "empty?", immutable_list_is_empty, 0);
+  rb_define_method(cImmutableList, "to_a", immutable_list_to_a, 0);
+  rb_define_method(cImmutableList, "inspect", immutable_list_inspect, 0);
+  rb_define_alias(cImmutableList,  "to_s", "inspect");
+  rb_define_method(cImmutableList, "rev_append", immutable_list_rev_append, 1);
+  rb_define_method(cImmutableList, "rev", immutable_list_rev, 0);
+  rb_define_method(cImmutableList, "append", immutable_list_append, 1);
+  rb_define_alias(cImmutableList,  "+", "append");
+  rb_define_method(cImmutableList, "length", immutable_list_length, 0);
+  rb_define_method(cImmutableList, "nth", immutable_list_nth, 1);
+  rb_define_alias(cImmutableList,  "[]", "nth");
 }
